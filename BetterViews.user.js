@@ -4,6 +4,7 @@
 // @version                1.0.0.17
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
+// @license                GPL-3.0-only
 // @create                 2020-04-05
 // @match                  https://www.baidu.com/
 // @require                https://cdn.jsdelivr.net/npm/notiflix@2.1.2/dist/AIO/notiflix-aio-2.1.2.min.js
