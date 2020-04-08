@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.0.17
+// @version                1.0.1.0
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -9,6 +9,7 @@
 // @match                  https://www.baidu.com/
 // @require                https://cdn.jsdelivr.net/npm/notiflix@2.1.2/dist/AIO/notiflix-aio-2.1.2.min.js
 // @require                https://greasyfork.org/scripts/399868-loadednode/code/loadedNode.js?version=789297
+// @require                https://greasyfork.org/scripts/399879-%E5%BC%B9%E7%AA%97/code/%E5%BC%B9%E7%AA%97.js?version=789809
 // @grant                  GM_info
 // @grant                  GM_setValue
 // @grant                  GM_getValue
@@ -199,29 +200,62 @@
         document.body.removeChild(input);
         Notiflix.Notify.Success('复制成功');
     }
+	function uuid() {
+		var s = [];
+		var hexDigits = "0123456789abcdef";
+		for (var i = 0; i < 36; i++) {
+			s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+		}
+		s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
+		s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+		s[8] = s[13] = s[18] = s[23] = "-";
+
+		var uuid = s.join("");
+		return uuid;
+	}
+
     function setBackgroundImg(sel){
-        if(sel==-1) sel = Math.round(Math.random()*imgSrcList.length);
-        let img=new Image();
-        img.src=imgSrcList[sel];
-        img.onload=function(){
-            $('#head').css({
-                "background-position": "center",
-                "background-color": "black",
-                "background-size": "100%",
-                "background-repeat": "repeat-y",
-                "background-image":"url('"+imgSrcList[sel]+"')",
-                "transition":"1s",
-            });
-            setTimeout(function(){
-                $('#head').css({
-                    "background-color": "white",
-                });
-            },1000);
-        };
-        GM.setValue("backImgSelect",sel);
+		const starIndex = GM.getValue("starIndex");
+		function loadImg(src){
+			let img=new Image();
+			img.src=imgSrcList[sel];
+			img.onload=function(){
+				$('#head').css({
+					"background-position": "center",
+					"background-color": "black",
+					"background-size": "100%",
+					"background-repeat": "repeat-y",
+					"background-image":"url('"+src+"')",
+					"transition":"1s",
+				});
+				setTimeout(function(){
+					$('#head').css({
+						"background-color": "white",
+					});
+				},1000);
+			};
+		}
+		if(typeof(starIndex)==="undefined"||starIndex===-1){
+			if(sel===-1) sel = Math.round(Math.random()*imgSrcList.length);
+			loadImg(imgSrcList[sel]);
+			GM.setValue("backImgSelect",sel);
+		}else{
+			const backImgdataList = GM.getValue("backImgdataList");
+			if(typeof(backImgdataList)==="undefined"){
+				GM.setValue("backImgdataList",[]);
+				backImgdataList = [];
+			}
+			for (let index = 0; index < backImgdataList.length; index++) {
+				console.log(backImgdataList[index].uuid);
+				if(backImgdataList[index].uuid === starIndex){
+					loadImg(backImgdataList[index].url);
+					break;
+				}
+			}
+		}
     }
 
-	function initView(){
+	function initBaiduView(){
     	//  删除不必要的部分
 		(function(){
 			$('html').css(cssToObj("overflow:hidden;"));
@@ -313,7 +347,7 @@
 				});
 			});
 		})();
-		
+
 		//  初始化悬浮窗
 		(function(){
 			var floatingWindow = (function(){
@@ -367,7 +401,6 @@
 					<i title='插件设置' class='fa fa-cog fa-2x'></i>\
 					<i title='添加新背景图' class='fa fa-plus fa-2x'></i>\
 					<i title='查看当前背景大图' class='fa fa-image fa-2x'></i>\
-					<i title='历史记录' class='fa fa-history fa-2x'></i>\
 					<i title='分享给好友' class='fa fa-share-alt fa-2x'></i>\
 				"));
 				floatingWindow.find('.selectNode-nav').find('i').css(cssToObj("\
@@ -406,13 +439,298 @@
 					Notiflix.Report.Warning( '插件设置-开发ing', '插件设置,努力开发ing', '确认' );
 				});
 				floatingWindow.find(".fa-plus").click(function(){
-					Notiflix.Report.Warning( '新添背景-开发ing', '新添背景,努力开发ing', '确认' );
+					function generateImgShowItem(backImgdata,isStar) {
+						const userimgSrc = backImgdata.url;
+						const uuid = backImgdata.uuid;
+						const imgShowItem =
+							$('<div class="imgShowItem">\
+								<i class="fa fa-trash" title="删除图片"></i>\
+								<i class="fa fa-link" title="复制链接"></i>\
+								<i class="fa fa-star'+(() => {
+									if(!isStar) return '-o'
+									else return ''
+								})()+' imgShowItem-set" title="'+(() => {
+									if(!isStar) return '设置为背景'
+									else return ''
+								})()+'"></i>\
+							</div>').css(cssToObj("\
+								position: relative;float: left;\
+								width: 0px;height: 180px;\
+								margin: 10px;\
+								background-position: center;\
+								background-repeat: no-repeat;\
+								background-size: 0%;\
+								background-color: black;\
+								background-image: url('"+userimgSrc+"');\
+								box-shadow: 0 0 0px gray;\
+								border-radius: 16px;\
+								overflow: hidden;\
+								transition: .5s;\
+							")).hover(function(){
+								$(this).css(cssToObj("box-shadow: 0 0 20px gray;"));
+							},function(){
+								$(this).css(cssToObj("box-shadow: 0 0 0px gray;"));
+							})
+								.find('.fa-trash')
+								.css(cssToObj("\
+									position: absolute;\
+									bottom: 10px;right: 10px;\
+									color: rgb(250,250,250);\
+									transition: .5s;\
+								"))
+								.hover(function(){
+									$(this).css("color","rgb(250,100,100)");
+								},function(){
+									$(this).css("color","rgb(250,250,250)");
+								})
+								.unbind('click').bind('click',function(){
+									const content = this;
+									Notiflix.Confirm.Init({ titleColor:"#dc1616",titleFontSize:"20px",rtl:true,borderRadius:"8px", });
+									Notiflix.Confirm.Show( '确认', '你确认要删除该壁纸吗?', '确认', '我点错了', function(){
+										setTimeout(() => {
+											$(content).parent().css("width","0");
+											setTimeout(() => {
+// Todo 删除改图片数据
+												$(content).parent().remove();
+												for (let index = 0; index < backImgdataList.length; index++) {
+													if(backImgdataList[index].uuid === uuid){
+														backImgdataList.splice(index, 1);
+														break;
+													}
+												}
+												GM.setValue("backImgdataList",backImgdataList);
+											}, 800);
+										}, 100);
+									}, function(){
+									} );
+								})
+							.parent()
+								.find('.fa-link')
+								.css(cssToObj("\
+									position: absolute;\
+									bottom: 10px;right: 30px;\
+									color: rgb(250,250,250);\
+									transition: .5s;\
+								"))
+								.hover(function(){
+									$(this).css("color","rgb(100,100,250)");
+								},function(){
+									$(this).css("color","rgb(250,250,250)");
+								})
+								.unbind('click').bind('click',function(){
+									copyText(userimgSrc);
+								})
+							.parent()
+								.find('.imgShowItem-set')
+								.css(cssToObj("\
+									position: absolute;\
+									bottom: 10px;right: 50px;\
+									color: "+(() => {
+										if(!isStar) return 'rgb(250,250,250)'
+										else return 'rgb(250,250,100)'
+									})()+";\
+									transition: .5s;\
+								"))
+								.hover(function(){
+									$(this)
+										.removeClass("fa-star-o")
+										.addClass("fa-star")
+										.css("color","rgb(250,250,100)");
+								},function(){
+									if(!$(this).parent()[0].isStar) $(this)
+										.removeClass("fa-star")
+										.addClass("fa-star-o")
+										.css("color","rgb(250,250,250)");
+									else $(this)
+										.removeClass("fa-star-o")
+										.addClass("fa-star")
+										.css("color","rgb(250,250,100)");
+								})
+								.unbind('click').bind('click',function(){
+									if(this.isStar) return;
+									const $parent = $(this).parent();
+									const $grandparent = $parent.parent();
+									$grandparent[0].setStar.call($grandparent[0],$parent[0]);
+// Todo 设置该图片为背景
+									GM.setValue("starIndex",uuid);
+									setBackgroundImg();
+								})
+							.parent();
+						imgShowItem[0].uuid = uuid;
+						imgShowItem[0].isStar = isStar;
+						imgShowItem[0].starThis = function (isStar) {
+							this.isStar = isStar;
+							if(!isStar){
+								$(this).find('.imgShowItem-set')
+								.removeClass("fa-star")
+								.addClass("fa-star-o")
+								.css("color","rgb(250,250,250)");
+							}
+							else{
+								$(this).find('.imgShowItem-set')
+								.removeClass("fa-star-o")
+								.addClass("fa-star")
+								.css("color","rgb(250,250,100)");
+							}
+						};
+						setTimeout(() => {
+							imgShowItem
+							.css("width","280px")
+							.css("background-size","100%");
+						}, 100);
+						return imgShowItem;
+					}
+
+					const setBackgroundImghtmlFrame = (function () {
+						const htmlFrame = $('\
+							<div>\
+								<h1 style="text-align: center;margin-top: 10px;margin-bottom: 10px;">自定义图片背景</h1>\
+								<h3 style="text-align: center;margin-top: 10px;margin-bottom: 20px;">你可以通过下面的图床工具生成你的图片地址</h3>\
+								<h3 style="text-align: center;margin-top: 0;margin-bottom: 20px;height:50px;line-height:50px;">\
+									<a class="imgBedLink" href="http://ss.netnr.com/bed" target="_blank">net达人</a>\
+									<a class="imgBedLink" href="https://oss.bilnn.com/" target="_blank">图速云</a>\
+								</h3>\
+								<div class="imgSrcInputWrapper"><input type="text" name="imgSrc01" placeholder="请输入图片的url地址"><i class="fa fa-check"></i><i class="fa fa-close"></i></div>\
+								<div class="imgSrcShow">\
+									<div class="imgSrcShow-wrapper">\
+									</div>\
+								</div>\
+							</h1>\
+						').css({
+							"position":"absolute",
+							"width":"100%",
+							"height":"100%",
+						});
+						htmlFrame.find('.imgBedLink').css(cssToObj("\
+							padding: 5px;\
+							margin-left: 10px;margin-right: 10px;\
+							border: 2px solid gray;\
+							border-radius: 14px;\
+							box-shadow: 0 0 0px gray;\
+							background-color: rgb(240,240,240);\
+							color: skyblue;\
+							text-decoration: none;\
+							font-size: 18px;\
+							transition: .5s;\
+						")).hover(function () {
+							$(this).css(cssToObj("box-shadow: 0 0 5px gray;"));
+						},function () {
+							$(this).css(cssToObj("box-shadow: 0 0 0px gray;"));
+						});
+						htmlFrame.find('.imgSrcInputWrapper').css(cssToObj("\
+							position: relative;float: left;\
+							left: 10%;\
+							padding-left: 10px;\
+							padding-right: 10px;\
+							width: calc(80% - 20px);height: 40px;\
+							font-size: 20px;line-height: 40px;\
+							border-radius: 10px;\
+							background-color: white;\
+							box-shadow: 0 0 8px gray;\
+							overflow: hidden;\
+							transition: .5s;\
+						")).hover(function(){
+							$(this).css(cssToObj("box-shadow: 0 0 18px gray;"));
+						},function(){
+							$(this).css(cssToObj("box-shadow: 0 0 8px gray;"));
+						}).find('i').css(cssToObj("\
+							position: relative;float: left;\
+							width: 32px;height: 40px;\
+							text-align: center;\
+							line-height: 40px;\
+						")).parent().find('input').css(cssToObj("position: relative;float: left;"));
+						htmlFrame.find('.imgSrcInputWrapper .fa-check').css("color","rgb(100,250,100)")
+						.unbind('click').click(function(){
+							if(htmlFrame.find('input').val()===""){
+								Notiflix.Report.Failure( '错误', '链接不能为空', '确认');
+								return;
+							}
+							let data = {
+									"uuid":uuid(),
+									"url":htmlFrame.find('input').val(),
+							};
+							htmlFrame.find('.imgSrcShow .imgSrcShow-wrapper')
+							.prepend(generateImgShowItem(data,false));
+// Todo 新添加一张背景图
+							backImgdataList.unshift(data);
+							GM.setValue("backImgdataList",backImgdataList);
+							htmlFrame.find('input').val("");
+						});
+						htmlFrame.find('.imgSrcInputWrapper .fa-close').css("color","rgb(250,100,100)")
+						.unbind('click').click(function(){
+							htmlFrame.find('input').val("");
+						});
+
+						htmlFrame.find('.imgSrcInputWrapper input').css(cssToObj("\
+							width: calc(100% - 64px);height: 100%;\
+							border: none;\
+							outline: none;\
+							font-size: 20px;line-height: 40px;\
+						"));
+						htmlFrame.find('.imgSrcShow').css(cssToObj("\
+							position: relative;float: left;\
+							width: 100%;height: calc(100% - 230px);\
+							overflow-x: hidden;\
+						"));
+						htmlFrame.find('.imgSrcShow .imgSrcShow-wrapper').css(cssToObj("\
+							position: absolute;\
+							left: calc(50% - 450px);\
+							width: 900px;\
+						"));
+						return htmlFrame;
+					})();
+// Todo 获取已保存的背景图列表
+					const backImgdataList = GM.getValue("backImgdataList");
+					if(typeof(backImgdataList)==="undefined"){
+						GM.setValue("backImgdataList",[]);
+						backImgdataList = [];
+					}
+// Todo 获取当前选择的背景图id
+					const starIndex = GM.getValue("starIndex");
+					if(typeof(starIndex)==="undefined"){
+						GM.setValue("starIndex",-1);
+						starIndex = -1;
+					}
+					setBackgroundImghtmlFrame.find('.imgSrcShow .imgSrcShow-wrapper')
+						[0].setStar = function(item){
+							for (let index = 0; index < this.childNodes.length; index++) {
+								const ele = this.childNodes[index];
+								if(ele === item) ele.starThis(true);
+								else ele.starThis(false);
+							}
+						};
+
+					for (let index = 0; index < backImgdataList.length; index++) {
+						setBackgroundImghtmlFrame.find('.imgSrcShow .imgSrcShow-wrapper')
+						.prepend(
+							generateImgShowItem(backImgdataList[index],backImgdataList[index].uuid === starIndex)
+						);
+					}
+					//  清楚多余的空格
+					(function removeWhiteSpace(elem){
+						let el = elem || document,
+							cur = el.firstChild,
+							temp,
+							reg = /\S/;
+						while(null != cur){
+							temp = cur.nextSibling;
+							if( 3 === cur.nodeType && !reg.test(cur.nodeValue) ){
+								el.removeChild(cur);
+							}else if( 1 === cur.nodeType ){
+								removeWhiteSpace(cur);
+							}
+							cur = temp;
+						}
+					})(setBackgroundImghtmlFrame[0]);
+
+					PopupWindow.Show.HtmlFrame(setBackgroundImghtmlFrame[0],{
+						width:1000,
+						height:600,
+						maskColor:"rgba(0,0,0,.5)",
+					},null);
 				});
 				floatingWindow.find(".fa-image").click(function(){
 					$('<a href="'+imgSrcList[GM.getValue('backImgSelect')]+'" download="CurrentBackgroundImg.png"></a>')[0].click();
-				});
-				floatingWindow.find(".fa-history").click(function(){
-					Notiflix.Report.Warning( '历史记录-开发ing', '历史记录,努力开发ing', '确认' );
 				});
 				floatingWindow.find(".fa-share-alt").click(function(){
 					Notiflix.Report.Info( '分享', '追求极简的快乐', '确认' );
@@ -474,7 +792,7 @@
             document.body.appendChild(thatWord[0]);
         })();
     }
-    initView();
+    initBaiduView();
 
 //     GM.deleteValue("isFirst");
     if(typeof(GM.getValue("isFirst")) == "undefined"){
