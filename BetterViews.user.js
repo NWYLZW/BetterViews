@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.1.0
+// @version                1.0.1.1
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -215,6 +215,10 @@
 	}
 
     function setBackgroundImg(sel){
+		//  点击了随机按钮
+		if(sel===-1){
+			GM.setValue("starIndex",-1);
+		}
 		const starIndex = GM.getValue("starIndex");
 		function loadImg(src){
 			let img=new Image();
@@ -727,10 +731,11 @@
 						width:1000,
 						height:600,
 						maskColor:"rgba(0,0,0,.5)",
-					},null);
+					},()=>{window.location = window.location;});
 				});
 				floatingWindow.find(".fa-image").click(function(){
-					$('<a href="'+imgSrcList[GM.getValue('backImgSelect')]+'" download="CurrentBackgroundImg.png"></a>')[0].click();
+					let regex0 = /(?<=\(\")\S+(?=\"\))/g;
+					$('<a href="'+$('#head').css("background-image").match(regex0)+'" download="CurrentBackgroundImg.png"></a>')[0].click();
 				});
 				floatingWindow.find(".fa-share-alt").click(function(){
 					Notiflix.Report.Info( '分享', '追求极简的快乐', '确认' );
