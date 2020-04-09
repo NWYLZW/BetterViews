@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.1.6
+// @version                1.0.1.7
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -16,6 +16,7 @@
 // @grant                  GM_deleteValue
 // @grant                  GM_registerMenuCommand
 // @grant                  GM_unregisterMenuCommand
+// @grant                  unsafeWindow
 // ==/UserScript==
 (function() {
     'use strict';
@@ -32,18 +33,25 @@
     GM.deleteValue = GM_deleteValue;
     GM.registerMenuCommand = GM_registerMenuCommand;
     GM.unregisterMenuCommand = GM_unregisterMenuCommand;
-    if(typeof(GM.getValue("isDev")) === "undefined"){
+    if(typeof(GM.getValue("isDev")) === "undefined" || GM.getValue("isDev") === false){
 		setTimeout(function(){
 			console.clear();
-			console.log("百度界面优化");
+			console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "界面优化");
+			console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "若想开启测试功能请在控制台输入=>devControler.open()");
+			console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(250,50,50);", "测试功能可能有很大的缺陷,可能导致脚本出现数据丢失重装,谨慎开启");
 		},1000);
 	}else{
-		if(GM.getValue("isDev")===true) console.log("开启测试功能");
-		else setTimeout(function(){
-			console.clear();
-			console.log("百度界面优化");
-		},1000);
+		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "开启测试功能");
 	}
+	const devControler = {};
+	devControler.open = function(){
+		GM.setValue("isDev",true);
+		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "关闭测试功能输入=>devControler.close()");
+	};
+	devControler.close = function(){
+		GM.setValue("isDev",false);
+	};
+	unsafeWindow.devControler = devControler;
 
     Notiflix.Notify.Init({ closeButton:true,position:"left-top", });
     document.head.appendChild($('<link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">')[0]);
