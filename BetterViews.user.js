@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.1.5
+// @version                1.0.1.6
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -32,10 +32,18 @@
     GM.deleteValue = GM_deleteValue;
     GM.registerMenuCommand = GM_registerMenuCommand;
     GM.unregisterMenuCommand = GM_unregisterMenuCommand;
-	setTimeout(function(){
-		console.clear();
-		console.log("百度界面优化");
-	},1000);
+    if(typeof(GM.getValue("isDev")) === "undefined"){
+		setTimeout(function(){
+			console.clear();
+			console.log("百度界面优化");
+		},1000);
+	}else{
+		if(GM.getValue("isDev")===true) console.log("开启测试功能");
+		else setTimeout(function(){
+			console.clear();
+			console.log("百度界面优化");
+		},1000);
+	}
 
     Notiflix.Notify.Init({ closeButton:true,position:"left-top", });
     document.head.appendChild($('<link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">')[0]);
@@ -217,7 +225,6 @@
 				backImgdataList = [];
 			}
 			for (let index = 0; index < backImgdataList.length; index++) {
-				console.log(backImgdataList[index].uuid);
 				if(backImgdataList[index].uuid === starIndex){
 					loadImg(backImgdataList[index].url);
 					break;
@@ -226,31 +233,10 @@
 		}
     }
 	function initBaiduView(){
-    	//  调整搜索的点击事件
-		(function(){
-			$('#kw')
-				.off("click inputChange propertyChange")
-				.on("keypress",function(){
-					if (event.keyCode == 13) {
-						Notiflix.Loading.Init({ backgroundColor:"#ffffff",svgSize:"100px",svgColor:"#05afef",messageFontSize:"20px", });
-						Notiflix.Loading.Pulse('搜索中...');
-						$(document.body).on('hashchange',function(){
-							Notiflix.Loading.Remove(500);
-							window.location=window.location;
-						});
-					}
-				})
-				.on('input click',function(){
-					// 搜索框下方提示
-					$().loadedNode('#form .bdsug', function(){
-						$(this).css(cssToObj("position: fixed;left: calc(50% - 280px);top: calc(50% + 17px);width: 560px;border-radius: 0 0 16px 16px;"));
-					});
-				})
-				.css(cssToObj("padding-left: 20px;color: white;over: white;border: none;background-color: rgba(0,0,0,0);transition: .5s;border: none;"));
-		})();
     	//  删除不必要的部分
 		(function(){
 			$('html').css(cssToObj("overflow:hidden;"));
+			$('#result_logo').css(cssToObj("display: none;"));
 			$('#su').css(cssToObj("display: none;"));
 			$('div#u1').css(cssToObj("display: none;"));
 			$('div#bottom_layer.s-bottom-layer').css(cssToObj("display: none;"));
@@ -305,6 +291,45 @@
 					box-shadow: 0 0 0 white;\
 				"));
         	});
+		})();
+    	//  调整搜索的点击事件
+		(function(){
+			setTimeout(function(){
+				function clearClick(){
+					if($._data($("#kw")[0],'events').click && $._data($("#kw")[0],'events').click.length===3){
+						$._data($("#kw")[0],'events').click=[];
+					}else{
+						setTimeout(clearClick,10);
+					}
+				}
+				function clearInputChange(){
+					if($._data($("#kw")[0],'events').inputChange && $._data($("#kw")[0],'events').inputChange.length===2){
+						$._data($("#kw")[0],'events').inputChange=[];
+					}else{
+						setTimeout(clearInputChange,10);
+					}
+				}
+				clearClick();
+				clearInputChange();
+			},10);
+			$('#kw')
+				.css(cssToObj("padding-left: 20px;color: white;over: white;border: none;background-color: rgba(0,0,0,0);transition: .5s;border: none;"))
+				.on("keypress",function(){
+					if (event.keyCode === 13) {
+						Notiflix.Loading.Init({ backgroundColor:"#ffffff",svgSize:"100px",svgColor:"#05afef",messageFontSize:"20px", });
+						Notiflix.Loading.Pulse('搜索中...');
+						$(document.body).on('hashchange',function(){
+							Notiflix.Loading.Remove(500);
+							window.location=window.location;
+						});
+					}
+				})
+				.on('input click',function(){
+					// 搜索框下方提示
+					$().loadedNode('#form .bdsug', function(){
+						$(this).css(cssToObj("position: fixed;left: calc(50% - 280px);top: calc(50% + 17px);width: 560px;border-radius: 0 0 16px 16px;"));
+					});
+				});
 		})();
     	//  搜图样式
 		(function(){
@@ -767,7 +792,7 @@
 
     initBaiduView();
 
-    if(typeof(GM.getValue("isFirst")) == "undefined"){
+    if(typeof(GM.getValue("isFirst")) === "undefined"){
         var message = $("\
             <div class='message'>\
                 <i class='fa fa-remove fa-1x'></i>\
@@ -803,7 +828,7 @@
         "));
         document.body.appendChild(message[0]);
     }
-    if(typeof(GM.getValue("backImgSelect")) == "number"){
+    if(typeof(GM.getValue("backImgSelect")) === "number"){
         setBackgroundImg(GM.getValue("backImgSelect"));
     }
     else{
