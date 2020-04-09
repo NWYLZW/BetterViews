@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.1.1
+// @version                1.0.1.2
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -683,13 +683,11 @@
 						"));
 						return htmlFrame;
 					})();
-// Todo 获取已保存的背景图列表
 					const backImgdataList = GM.getValue("backImgdataList");
 					if(typeof(backImgdataList)==="undefined"){
 						GM.setValue("backImgdataList",[]);
 						backImgdataList = [];
 					}
-// Todo 获取当前选择的背景图id
 					const starIndex = GM.getValue("starIndex");
 					if(typeof(starIndex)==="undefined"){
 						GM.setValue("starIndex",-1);
@@ -731,7 +729,11 @@
 						width:1000,
 						height:600,
 						maskColor:"rgba(0,0,0,.5)",
-					},()=>{window.location = window.location;});
+					},()=>{
+						setTimeout(function(){
+							window.location = window.location;
+						},1000)
+					});
 				});
 				floatingWindow.find(".fa-image").click(function(){
 					let regex0 = /(?<=\(\")\S+(?=\"\))/g;
