@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.1.4
+// @version                1.0.1.5
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -36,39 +36,6 @@
 		console.clear();
 		console.log("百度界面优化");
 	},1000);
-// 	油猴菜单注册
-	(function(){
-		var showFloatWindow = GM.getValue("showFloatWindow");
-		if(typeof(showFloatWindow) == "undefined"){
-			GM.setValue("showFloatWindow",true);
-		}
-		function unregisterMenu(){
-			var commandId = GM.getValue("commandId");
-			if(commandId == "undefined"){
-				alert("出现了未知错误");
-				return;
-			}
-			GM.unregisterMenuCommand(commandId);
-		}
-		function setCommandEnd(commandName){
-			GM.setValue("commandId",GM.registerMenuCommand(commandName,function(){
-				unregisterMenu();
-				if(commandName==="关闭悬浮窗"){
-					setCommandEnd("开启悬浮窗");
-					$("#floatingWindow").css("display","none");
-				}
-				else{
-					setCommandEnd("关闭悬浮窗");
-					$("#floatingWindow").css("display","block");
-				}
-			}));
-		}
-		if(showFloatWindow){
-			setCommandEnd("关闭悬浮窗");
-		}else{
-			setCommandEnd("开启悬浮窗");
-		}
-	})();
 
     Notiflix.Notify.Init({ closeButton:true,position:"left-top", });
     document.head.appendChild($('<link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">')[0]);
@@ -258,8 +225,29 @@
 			}
 		}
     }
-
 	function initBaiduView(){
+    	//  调整搜索的点击事件
+		(function(){
+			$('#kw')
+				.off("click inputChange propertyChange")
+				.on("keypress",function(){
+					if (event.keyCode == 13) {
+						Notiflix.Loading.Init({ backgroundColor:"#ffffff",svgSize:"100px",svgColor:"#05afef",messageFontSize:"20px", });
+						Notiflix.Loading.Pulse('搜索中...');
+						$(document.body).on('hashchange',function(){
+							Notiflix.Loading.Remove(500);
+							window.location=window.location;
+						});
+					}
+				})
+				.on('input click',function(){
+					// 搜索框下方提示
+					$().loadedNode('#form .bdsug', function(){
+						$(this).css(cssToObj("position: fixed;left: calc(50% - 280px);top: calc(50% + 17px);width: 560px;border-radius: 0 0 16px 16px;"));
+					});
+				})
+				.css(cssToObj("padding-left: 20px;color: white;over: white;border: none;background-color: rgba(0,0,0,0);transition: .5s;border: none;"));
+		})();
     	//  删除不必要的部分
 		(function(){
 			$('html').css(cssToObj("overflow:hidden;"));
@@ -317,29 +305,6 @@
 					box-shadow: 0 0 0 white;\
 				"));
         	});
-		})();
-    	//  移除搜索的点击事件
-		(function(){
-			$('#kw')
-				.css(cssToObj("padding-left: 20px;color: white;over: white;border: none;background-color: rgba(0,0,0,0);transition: .5s;border: none;"))
-				.off("click inputChange propertyChange")
-				.on("keypress",function(){
-					if (event.keyCode == 13) {
-						Notiflix.Loading.Init({ backgroundColor:"#ffffff",svgSize:"100px",svgColor:"#05afef",messageFontSize:"20px", });
-						Notiflix.Loading.Pulse('搜索中...');
-						$(document.body).on('hashchange',function(){
-							Notiflix.Loading.Remove(500);
-							location=location;
-						});
-					}
-				})
-				.on('input click',function(){
-					// 搜索框下方提示
-					var interval = setInterval(function(){
-						if($('#form .bdsug').css("position")=="fixed") clearInterval(interval);
-						$('#form .bdsug').css(cssToObj("position: fixed;left: calc(50% - 280px);top: calc(50% + 17px);width: 560px;border-radius: 0 0 16px 16px;"));
-					},100);
-				});
 		})();
     	//  搜图样式
 		(function(){
@@ -799,9 +764,9 @@
             document.body.appendChild(thatWord[0]);
         })();
     }
+
     initBaiduView();
 
-//     GM.deleteValue("isFirst");
     if(typeof(GM.getValue("isFirst")) == "undefined"){
         var message = $("\
             <div class='message'>\
@@ -845,4 +810,37 @@
         console.log(GM.getValue("backImgSelect"));
         setBackgroundImg(0);
     }
+// 	油猴菜单注册
+	(function(){
+		var showFloatWindow = GM.getValue("showFloatWindow");
+		if(typeof(showFloatWindow) == "undefined"){
+			GM.setValue("showFloatWindow",true);
+		}
+		function unregisterMenu(){
+			var commandId = GM.getValue("commandId");
+			if(commandId == "undefined"){
+				alert("出现了未知错误");
+				return;
+			}
+			GM.unregisterMenuCommand(commandId);
+		}
+		function setCommandEnd(commandName){
+			GM.setValue("commandId",GM.registerMenuCommand(commandName,function(){
+				unregisterMenu();
+				if(commandName==="关闭悬浮窗"){
+					setCommandEnd("开启悬浮窗");
+					$("#floatingWindow").css("display","none");
+				}
+				else{
+					setCommandEnd("关闭悬浮窗");
+					$("#floatingWindow").css("display","block");
+				}
+			}));
+		}
+		if(showFloatWindow){
+			setCommandEnd("关闭悬浮窗");
+		}else{
+			setCommandEnd("开启悬浮窗");
+		}
+	})();
 })();
