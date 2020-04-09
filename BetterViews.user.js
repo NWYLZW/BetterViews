@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.1.3
+// @version                1.0.1.4
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -304,6 +304,7 @@
 				border: 2px solid white;\
 				border-radius: 30px;\
 				overflow: hidden;\
+				background-color: rgba(255,255,255,0);\
 				transition: 1s;\
 			")).hover(function(){
 				$(this).css(cssToObj("\
