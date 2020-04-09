@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.1.2
+// @version                1.0.1.3
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -9,7 +9,7 @@
 // @match                  https://www.baidu.com/
 // @require                https://cdn.jsdelivr.net/npm/notiflix@2.1.2/dist/AIO/notiflix-aio-2.1.2.min.js
 // @require                https://greasyfork.org/scripts/399868-loadednode/code/loadedNode.js?version=789297
-// @require                https://greasyfork.org/scripts/399879-%E5%BC%B9%E7%AA%97/code/%E5%BC%B9%E7%AA%97.js?version=789809
+// @require                https://greasyfork.org/scripts/399879-%E5%BC%B9%E7%AA%97/code/%E5%BC%B9%E7%AA%97.js?version=790054
 // @grant                  GM_info
 // @grant                  GM_setValue
 // @grant                  GM_getValue
@@ -555,7 +555,6 @@
 									const $parent = $(this).parent();
 									const $grandparent = $parent.parent();
 									$grandparent[0].setStar.call($grandparent[0],$parent[0]);
-// Todo 设置该图片为背景
 									GM.setValue("starIndex",uuid);
 									setBackgroundImg();
 								})
@@ -588,9 +587,9 @@
 					const setBackgroundImghtmlFrame = (function () {
 						const htmlFrame = $('\
 							<div>\
-								<h1 style="text-align: center;margin-top: 10px;margin-bottom: 10px;">自定义图片背景</h1>\
-								<h3 style="text-align: center;margin-top: 10px;margin-bottom: 20px;">你可以通过下面的图床工具生成你的图片地址</h3>\
-								<h3 style="text-align: center;margin-top: 0;margin-bottom: 20px;height:50px;line-height:50px;">\
+								<h1 style="font-size: 2em;text-align: center;margin-top: 10px;margin-bottom: 10px;">自定义图片背景</h1>\
+								<h3 style="font-size: 1.17em;text-align: center;margin-top: 10px;margin-bottom: 20px;">你可以通过下面的图床工具生成你的图片地址</h3>\
+								<h3 style="font-size: 1.17em;text-align: center;margin-top: 0;margin-bottom: 20px;height:50px;line-height:50px;">\
 									<a class="imgBedLink" href="http://ss.netnr.com/bed" target="_blank">net达人</a>\
 									<a class="imgBedLink" href="https://oss.bilnn.com/" target="_blank">图速云</a>\
 								</h3>\
