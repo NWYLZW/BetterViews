@@ -1,15 +1,16 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.2.0
+// @version                1.0.2.1
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
 // @create                 2020-04-05
-// @match                  https://www.baidu.com/
-// @match                  https://ss.netnr.com/bed
+// @match                  *://www.baidu.com/
+// @match                  *://www.google.com/
+// @match                  *://ss.netnr.com/bed
 // @require                https://cdn.jsdelivr.net/npm/notiflix@2.1.2/dist/AIO/notiflix-aio-2.1.2.min.js
-// @require                https://greasyfork.org/scripts/399868-loadednode/code/loadedNode.js?version=789297
+// @require                https://greasyfork.org/scripts/399868-jquery-loadednode/code/jQuery-loadedNode.js?version=790609
 // @require                https://greasyfork.org/scripts/399879-%E5%BC%B9%E7%AA%97/code/%E5%BC%B9%E7%AA%97.js?version=790054
 // @grant                  GM_info
 // @grant                  GM_setValue
@@ -43,32 +44,52 @@
 		GM.setValue("isDev",false);
 	};
 	devControler.is = function(){
-		return (typeof(GM.getValue("isDev")) === "undefined" || GM.getValue("isDev") === false);
+		return !(typeof(GM.getValue("isDev")) === "undefined" || GM.getValue("isDev") === false);
 	};
 	unsafeWindow.devControler = devControler;
+
 	const routerControler = {
 		"type":"None",
+		"routerList":{
+			"Baidu":{
+				"isDev":false,
+				"regex":/https?:\/\/www.baidu.com\//,
+			},
+			"Google":{
+				"isDev":true,
+				"regex":/https?:\/\/www.google.com\//,
+			},
+			"NetnrImageBed":{
+				"isDev":true,
+				"regex":/https?:\/\/ss.netnr.com\/bed/,
+			},
+		},
 	};
+	for (let key in routerControler.routerList) {
+		let item = routerControler.routerList[key];
+		if(item.regex.test(location.href)) routerControler.type = key;
+	}
+
     if(devControler.is()){
-		if(location.href==="https://ss.netnr.com/bed"){
-			routerControler.type = "NetnrImageBed";
-		}
-		if(location.href==="https://www.baidu.com/"){
-			routerControler.type = "Baidu";
-		}
+		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "界面优化--"+scriptInfo.version);
+		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "测试功能已开启");
+	}else{
 		setTimeout(function(){
 			console.clear();
 			console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "界面优化--"+scriptInfo.version);
 			console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "若想开启测试功能请在控制台输入=>devControler.open()");
 			console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(250,50,50);", "测试功能可能有很大的缺陷,可能导致脚本出现数据丢失重装,谨慎开启");
 		},1000);
-	}else{
-		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "界面优化--"+scriptInfo.version);
-		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "测试功能已开启");
 	}
 
+	function createEleByStr(htmlStr) {
+		let tempNode = document.createElement('div');
+		htmlStr = htmlStr.replace(/\t/g, "").replace(/\r/g, "").replace(/\n/g, "");
+		tempNode.innerHTML = htmlStr;
+		return tempNode.firstChild;
+	}
     Notiflix.Notify.Init({ closeButton:true,position:"left-top", });
-    document.head.appendChild($('<link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">')[0]);
+    document.head.appendChild(createEleByStr('<link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">'));
 
     var imgSrcList = [
         "http://free-cn-01.cdn.bilnn.com/ddimg/jfs/t1/109102/10/11602/2078533/5e8a9efcE3dbd7188/f4c30be2b0d2fd61.jpg",
@@ -184,7 +205,7 @@
         }
         $(['<a class="qcShareQQDiv" href="http://connect.qq.com/widget/shareqq/index.html?', s.join('&'), '" target="_blank">分享</a>'].join(''))[0].click();
     }
-    function copyText(text){
+    function copyText(text) {
         let input = document.createElement('input');
         input.setAttribute('readonly', 'readonly');
         input.setAttribute('value', text);
@@ -211,7 +232,7 @@
 		return uuid;
 	}
 
-    function setBackgroundImg(sel){
+    function setBackgroundImg(sel) {
 		//  点击了随机按钮
 		if(sel===-1){
 			GM.setValue("starIndex",-1);
@@ -255,7 +276,22 @@
 		}
     }
 
-	if(routerControler.type === "Baidu"){
+	function isopenRoute(){
+		if(devControler.is()){
+			//  开发者模式
+			return true;
+		}else{
+			// 不是开发者模式
+			if(routerControler.routerList[routerControler.type].isDev)
+				// 不是开发者模式，路径在开发
+				return false;
+			else
+				// 不是开发者模式，路径开发完毕
+				return true;
+		}
+	}
+
+	if(routerControler.type === "Baidu" && isopenRoute()){
 		//  init百度的视图
 		(function(){
 			//  删除不必要的部分
@@ -891,7 +927,23 @@
 			}
 		})();
 	}
-	else if(routerControler.type === "NetnrImageBed"){
+	else if(routerControler.type === "Google" && isopenRoute()){
+		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(250,50,50);", "该界面尚处于开发状态");
+		// 初始化导航按钮
+		(function(){
+			let nav = document.querySelector('#gb#gb a.gb_D');
+			nav.className = "fa fa-navicon  fa-2x";
+			nav.style.color = "white";
+		})();
+		// 删除不必要部分
+		(function(){
+			document.querySelector('#searchform.big .FPdoLc').style.display = "none";
+			document.querySelector('#SIvCob').style.display = "none";
+			document.querySelector('#footer').style.display = "none";
+		})();
+		return;
+	}
+	else if(routerControler.type === "NetnrImageBed" && isopenRoute()){
 		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(250,50,50);", "该界面尚处于开发状态");
 		return;
 	}
