@@ -12,6 +12,7 @@
 // @require                https://cdn.jsdelivr.net/npm/notiflix@2.1.2/dist/AIO/notiflix-aio-2.1.2.min.js
 // @require                https://greasyfork.org/scripts/399868-jquery-loadednode/code/jQuery-loadedNode.js?version=790609
 // @require                https://greasyfork.org/scripts/399879-%E5%BC%B9%E7%AA%97/code/%E5%BC%B9%E7%AA%97.js?version=790054
+// @require                https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @grant                  GM_info
 // @grant                  GM_setValue
 // @grant                  GM_getValue
@@ -29,24 +30,32 @@
         "create":"2020-04-05",
         "version":GM_info.script.version,
         "greasyforkURL":GM_info.script.downloadURL,
-    };
+	};
+	const $341 = $.noConflict();
+	if(typeof($)!=="undefined") $ = $341;
+	else $ = unsafeWindow.$;
+
     GM.setValue = GM_setValue;
     GM.getValue = GM_getValue;
     GM.deleteValue = GM_deleteValue;
     GM.registerMenuCommand = GM_registerMenuCommand;
-    GM.unregisterMenuCommand = GM_unregisterMenuCommand;
-	const devControler = {};
-	devControler.open = function(){
-		GM.setValue("isDev",true);
-		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "关闭测试功能输入=>devControler.close()");
-	};
-	devControler.close = function(){
-		GM.setValue("isDev",false);
-	};
-	devControler.is = function(){
-		return !(typeof(GM.getValue("isDev")) === "undefined" || GM.getValue("isDev") === false);
-	};
-	unsafeWindow.devControler = devControler;
+	GM.unregisterMenuCommand = GM_unregisterMenuCommand;
+	
+	// 初始化devControler
+	(function(){
+		const devControler = {};
+		devControler.open = function(){
+			GM.setValue("isDev",true);
+			console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(50,150,250);", "关闭测试功能输入=>devControler.close()");
+		};
+		devControler.close = function(){
+			GM.setValue("isDev",false);
+		};
+		devControler.is = function(){
+			return !(typeof(GM.getValue("isDev")) === "undefined" || GM.getValue("isDev") === false);
+		};
+		unsafeWindow.devControler = devControler;
+	})();
 
 	const routerControler = {
 		"type":"None",
@@ -81,15 +90,6 @@
 			console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(250,50,50);", "测试功能可能有很大的缺陷,可能导致脚本出现数据丢失重装,谨慎开启");
 		},1000);
 	}
-
-	function createEleByStr(htmlStr) {
-		let tempNode = document.createElement('div');
-		htmlStr = htmlStr.replace(/\t/g, "").replace(/\r/g, "").replace(/\n/g, "");
-		tempNode.innerHTML = htmlStr;
-		return tempNode.firstChild;
-	}
-    Notiflix.Notify.Init({ closeButton:true,position:"left-top", });
-    document.head.appendChild(createEleByStr('<link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">'));
 
     var imgSrcList = [
         "http://free-cn-01.cdn.bilnn.com/ddimg/jfs/t1/109102/10/11602/2078533/5e8a9efcE3dbd7188/f4c30be2b0d2fd61.jpg",
@@ -182,7 +182,29 @@
         "http://free-cn-01.cdn.bilnn.com/ddimg/jfs/t1/90494/3/17700/70674/5e8a9dd7E374695ac/60427eb5e2ed0ad6.jpg",
         "http://free-cn-01.cdn.bilnn.com/ddimg/jfs/t1/115002/26/317/46614/5e8a9dd6Eed20bcfd/bbe9da2e9833cba2.jpg",
     ];
-
+	function createEleByStr(htmlStr) {
+		let tempNode = document.createElement('div');
+		htmlStr = htmlStr.replace(/\t/g, "").replace(/\r/g, "").replace(/\n/g, "");
+		tempNode.innerHTML = htmlStr;
+		return tempNode.firstChild;
+	}
+	function css(nodes, propertyName, propertyValue) {
+		for (let i = 0; i < nodes.length; i++) {
+			let node = nodes[i];
+			if (typeof(propertyValue) === "undefined") {
+				if(typeof(propertyName) === "String")
+					return node.style.getPropertyValue(propertyName);
+				else{
+					const dictX = propertyName;
+					for (let index0 in dictX) {
+						node.style.setProperty(index0, dictX[index0]);
+					}
+				}
+			} else {
+				node.style.setProperty(propertyName, propertyValue);
+			}
+		}
+	}
     function cssToObj(css) {
         var regex = /([\w-]*)\s*:\s*([^;]*)/g;
         var match, properties={};
@@ -232,7 +254,10 @@
 		return uuid;
 	}
 
-    function setBackgroundImg(sel) {
+    Notiflix.Notify.Init({ closeButton:true,position:"left-top", });
+    document.head.appendChild(createEleByStr('<link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">'));
+
+    function setBackgroundImg($jqBack,sel) {
 		//  点击了随机按钮
 		if(sel===-1){
 			GM.setValue("starIndex",-1);
@@ -242,7 +267,7 @@
 			let img=new Image();
 			img.src=imgSrcList[sel];
 			img.onload=function(){
-				$('#head').css({
+				$jqBack.css({
 					"background-position": "center",
 					"background-color": "black",
 					"background-size": "100%",
@@ -251,7 +276,7 @@
 					"transition":"1s",
 				});
 				setTimeout(function(){
-					$('#head').css({
+					$jqBack.css({
 						"background-color": "white",
 					});
 				},1000);
@@ -275,6 +300,532 @@
 			}
 		}
     }
+	function initFloatWindowView(backImgNode){
+		const $ = $341;
+		//  初始化悬浮窗
+		(function(){
+			var floatingWindow = (function(){
+				var floatingWindow = $("\
+					<div id='floatingWindow' class='floatingWindow'>\
+						<i class='fa fa-refresh fa-3x'></i>\
+						<div class='selectNode-nav'></div>\
+					</div>\
+				").css(cssToObj("\
+					position: fixed;\
+					bottom: 20px;left: -25px;\
+					width: 50px;height: 50px;\
+					border-radius: 50%;\
+					background-image: linear-gradient( 135deg, #3C8CE7 30%, #00EAFF 100%);\
+					box-shadow: 0 0 30px white;\
+					transition: .5s;\
+				")).hover(function(){
+					this.isMouseout = false;
+					$(this).css(cssToObj("\
+						bottom: 20px;left: 20px;\
+						transform: rotateZ(180deg);\
+					"));
+				},function(){
+					var content = this;
+					content.isMouseout = true;
+					setTimeout(function(){
+						if(content.isMouseout) $(content).css(cssToObj("\
+							bottom: 20px;left: -25px;\
+							transform: rotateZ(0deg);\
+						"));
+					},1000);
+				});
+				floatingWindow.find('.fa-refresh').css(cssToObj("\
+					width: 100%;\
+					color: rgb(250,250,250);\
+					font-size: 25px;\
+					text-align: center;\
+					line-height: 50px;\
+				")).click(function(){
+					setBackgroundImg($('#head'),-1);
+				});
+				floatingWindow.find('.selectNode-nav').css(cssToObj("\
+					position: absolute;\
+					padding-left: 6px;\
+					padding-right: 6px;\
+					padding-top: 6px;\
+					top: 70px;left: calc(50% - 18px);\
+					width: 24px;\
+				")).append($("\
+					<i title='有关本插件' class='fa fa-info fa-2x'></i>\
+					<i title='插件设置' class='fa fa-cog fa-2x'></i>\
+					<i title='添加新背景图' class='fa fa-plus fa-2x'></i>\
+					<i title='查看当前背景大图' class='fa fa-image fa-2x'></i>\
+					<i title='分享给好友' class='fa fa-share-alt fa-2x'></i>\
+				"));
+				floatingWindow.find('.selectNode-nav').find('i').css(cssToObj("\
+					margin-bottom: 16px;\
+					width: 24px;\
+					text-align: center;\
+					color: gray;\
+					transform: rotateZ(180deg);\
+					transition: .5s;\
+				")).hover(function(){
+					$(this).css(cssToObj("\
+						color: white;\
+					"));
+				},function(){
+					$(this).css("color","gray");
+				});
+				document.body.appendChild(floatingWindow[0]);
+				return floatingWindow;
+			})();
+			//  初始化悬浮窗点击事件
+			(function(){
+				Notiflix.Report.Init({ width:"420px",backgroundColor:"#ffffff",svgSize:"50px",titleFontSize:"20px",buttonFontSize:"16px", info: {svgColor:"#0fa1e5",buttonBackground:"#2aa5e8",}, });
+				floatingWindow.find(".fa-info").click(function(){
+					Notiflix.Report.Info( '关于本插件', '追求极简的快乐', '确认' );
+					setTimeout(function(){
+						$('.notiflix-report-message').html('\
+							<h3>追求极简的快乐</h3>\
+							<h4>插件名:'+scriptInfo.name+'&nbsp;&nbsp;'+scriptInfo.version+'</h4>\
+							<h4>作者:'+scriptInfo.author+'</h4>\
+							<h4>创建时间:'+scriptInfo.create+'</h4>\
+							<h4>greasyfork<a href="'+scriptInfo.greasyforkURL+'">下载地址</a></h4>\
+						');
+					},100);
+				});
+				floatingWindow.find(".fa-cog").click(function(){
+					Notiflix.Report.Warning( '插件设置-开发ing', '插件设置,努力开发ing', '确认' );
+				});
+				floatingWindow.find(".fa-plus").click(function(){
+					function generateImgShowItem(backImgdata,isStar) {
+						const userimgSrc = backImgdata.url;
+						const uuid = backImgdata.uuid;
+						const imgShowItem =
+							$('<div class="imgShowItem">\
+								<i class="fa fa-trash" title="删除图片"></i>\
+								<i class="fa fa-link" title="复制链接"></i>\
+								<i class="fa fa-star'+(() => {
+									if(!isStar) return '-o'
+									else return ''
+								})()+' imgShowItem-set" title="'+(() => {
+									if(!isStar) return '设置为背景'
+									else return ''
+								})()+'"></i>\
+							</div>').css(cssToObj("\
+								position: relative;float: left;\
+								width: 0px;height: 180px;\
+								margin: 10px;\
+								background-position: center;\
+								background-repeat: no-repeat;\
+								background-size: 0%;\
+								background-color: black;\
+								background-image: url('"+userimgSrc+"');\
+								box-shadow: 0 0 0px gray;\
+								border-radius: 16px;\
+								overflow: hidden;\
+								transition: .5s;\
+							")).hover(function(){
+								$(this).css(cssToObj("box-shadow: 0 0 20px gray;"));
+							},function(){
+								$(this).css(cssToObj("box-shadow: 0 0 0px gray;"));
+							})
+								.find('.fa-trash')
+								.css(cssToObj("\
+									position: absolute;\
+									bottom: 10px;right: 10px;\
+									color: rgb(250,250,250);\
+									transition: .5s;\
+								"))
+								.hover(function(){
+									$(this).css("color","rgb(250,100,100)");
+								},function(){
+									$(this).css("color","rgb(250,250,250)");
+								})
+								.unbind('click').bind('click',function(){
+									const content = this;
+									Notiflix.Confirm.Init({ titleColor:"#dc1616",titleFontSize:"20px",rtl:true,borderRadius:"8px", });
+									Notiflix.Confirm.Show( '确认', '你确认要删除该壁纸吗?', '确认', '我点错了', function(){
+										setTimeout(() => {
+											$(content).parent().css("width","0");
+											setTimeout(() => {
+												$(content).parent().remove();
+												for (let index = 0; index < backImgdataList.length; index++) {
+													if(backImgdataList[index].uuid === uuid){
+														backImgdataList.splice(index, 1);
+														break;
+													}
+												}
+												GM.setValue("backImgdataList",backImgdataList);
+											}, 800);
+										}, 100);
+									}, function(){
+									} );
+								})
+							.parent()
+								.find('.fa-link')
+								.css(cssToObj("\
+									position: absolute;\
+									bottom: 10px;right: 30px;\
+									color: rgb(250,250,250);\
+									transition: .5s;\
+								"))
+								.hover(function(){
+									$(this).css("color","rgb(100,100,250)");
+								},function(){
+									$(this).css("color","rgb(250,250,250)");
+								})
+								.unbind('click').bind('click',function(){
+									copyText(userimgSrc);
+								})
+							.parent()
+								.find('.imgShowItem-set')
+								.css(cssToObj("\
+									position: absolute;\
+									bottom: 10px;right: 50px;\
+									color: "+(() => {
+										if(!isStar) return 'rgb(250,250,250)'
+										else return 'rgb(250,250,100)'
+									})()+";\
+									transition: .5s;\
+								"))
+								.hover(function(){
+									$(this)
+										.removeClass("fa-star-o")
+										.addClass("fa-star")
+										.css("color","rgb(250,250,100)");
+								},function(){
+									if(!$(this).parent()[0].isStar) $(this)
+										.removeClass("fa-star")
+										.addClass("fa-star-o")
+										.css("color","rgb(250,250,250)");
+									else $(this)
+										.removeClass("fa-star-o")
+										.addClass("fa-star")
+										.css("color","rgb(250,250,100)");
+								})
+								.unbind('click').bind('click',function(){
+									if(this.isStar) return;
+									const $parent = $(this).parent();
+									const $grandparent = $parent.parent();
+									$grandparent[0].setStar.call($grandparent[0],$parent[0]);
+									GM.setValue("starIndex",uuid);
+									setBackgroundImg($('#head'));
+								})
+							.parent();
+						imgShowItem[0].uuid = uuid;
+						imgShowItem[0].isStar = isStar;
+						imgShowItem[0].starThis = function (isStar) {
+							this.isStar = isStar;
+							if(!isStar){
+								$(this).find('.imgShowItem-set')
+								.removeClass("fa-star")
+								.addClass("fa-star-o")
+								.css("color","rgb(250,250,250)");
+							}
+							else{
+								$(this).find('.imgShowItem-set')
+								.removeClass("fa-star-o")
+								.addClass("fa-star")
+								.css("color","rgb(250,250,100)");
+							}
+						};
+						setTimeout(() => {
+							imgShowItem
+							.css("width","280px")
+							.css("background-size","100%");
+						}, 100);
+						return imgShowItem;
+					}
+
+					const setBackgroundImghtmlFrame = (function () {
+						const htmlFrame = $('\
+							<div>\
+								<h1 style="font-size: 2em;text-align: center;margin-top: 10px;margin-bottom: 10px;">自定义图片背景</h1>\
+								<h3 style="font-size: 1.17em;text-align: center;margin-top: 10px;margin-bottom: 20px;">你可以通过下面的图床工具生成你的图片地址</h3>\
+								<h3 style="font-size: 1.17em;text-align: center;margin-top: 0;margin-bottom: 20px;height:50px;line-height:50px;">\
+									<a class="imgBedLink" href="http://ss.netnr.com/bed" target="_blank">net达人</a>\
+									<a class="imgBedLink" href="https://oss.bilnn.com/" target="_blank">图速云</a>\
+								</h3>\
+								<div class="imgSrcInputWrapper"><input type="text" name="imgSrc01" placeholder="请输入图片的url地址"><i class="fa fa-check"></i><i class="fa fa-close"></i></div>\
+								<div class="imgSrcShow">\
+									<div class="imgSrcShow-wrapper">\
+									</div>\
+								</div>\
+							</h1>\
+						').css({
+							"position":"absolute",
+							"width":"100%",
+							"height":"100%",
+						});
+						htmlFrame.find('.imgBedLink').css(cssToObj("\
+							padding: 5px;\
+							margin-left: 10px;margin-right: 10px;\
+							border: 2px solid gray;\
+							border-radius: 14px;\
+							box-shadow: 0 0 0px gray;\
+							background-color: rgb(240,240,240);\
+							color: skyblue;\
+							text-decoration: none;\
+							font-size: 18px;\
+							transition: .5s;\
+						")).hover(function () {
+							$(this).css(cssToObj("box-shadow: 0 0 5px gray;"));
+						},function () {
+							$(this).css(cssToObj("box-shadow: 0 0 0px gray;"));
+						});
+						htmlFrame.find('.imgSrcInputWrapper').css(cssToObj("\
+							position: relative;float: left;\
+							left: 10%;\
+							padding-left: 10px;\
+							padding-right: 10px;\
+							width: calc(80% - 20px);height: 40px;\
+							font-size: 20px;line-height: 40px;\
+							border-radius: 10px;\
+							background-color: white;\
+							box-shadow: 0 0 8px gray;\
+							overflow: hidden;\
+							transition: .5s;\
+						")).hover(function(){
+							$(this).css(cssToObj("box-shadow: 0 0 18px gray;"));
+						},function(){
+							$(this).css(cssToObj("box-shadow: 0 0 8px gray;"));
+						}).find('i').css(cssToObj("\
+							position: relative;float: left;\
+							width: 32px;height: 40px;\
+							text-align: center;\
+							line-height: 40px;\
+						")).parent().find('input').css(cssToObj("position: relative;float: left;"));
+						htmlFrame.find('.imgSrcInputWrapper .fa-check').css("color","rgb(100,250,100)")
+						.unbind('click').click(function(){
+							if(htmlFrame.find('input').val()===""){
+								Notiflix.Report.Failure( '错误', '链接不能为空', '确认');
+								return;
+							}
+							let data = {
+									"uuid":uuid(),
+									"url":htmlFrame.find('input').val(),
+							};
+							htmlFrame.find('.imgSrcShow .imgSrcShow-wrapper')
+							.prepend(generateImgShowItem(data,false));
+							backImgdataList.unshift(data);
+							GM.setValue("backImgdataList",backImgdataList);
+							htmlFrame.find('input').val("");
+						});
+						htmlFrame.find('.imgSrcInputWrapper .fa-close').css("color","rgb(250,100,100)")
+						.unbind('click').click(function(){
+							htmlFrame.find('input').val("");
+						});
+
+						htmlFrame.find('.imgSrcInputWrapper input').css(cssToObj("\
+							width: calc(100% - 64px);height: 100%;\
+							border: none;\
+							outline: none;\
+							font-size: 20px;line-height: 40px;\
+						"));
+						htmlFrame.find('.imgSrcShow').css(cssToObj("\
+							position: relative;float: left;\
+							width: 100%;height: calc(100% - 230px);\
+							overflow-x: hidden;\
+						"));
+						htmlFrame.find('.imgSrcShow .imgSrcShow-wrapper').css(cssToObj("\
+							position: absolute;\
+							left: calc(50% - 450px);\
+							width: 900px;\
+						"));
+						return htmlFrame;
+					})();
+					const backImgdataList = GM.getValue("backImgdataList");
+					if(typeof(backImgdataList)==="undefined"){
+						GM.setValue("backImgdataList",[]);
+						backImgdataList = [];
+					}
+					const starIndex = GM.getValue("starIndex");
+					if(typeof(starIndex)==="undefined"){
+						GM.setValue("starIndex",-1);
+						starIndex = -1;
+					}
+					setBackgroundImghtmlFrame.find('.imgSrcShow .imgSrcShow-wrapper')
+						[0].setStar = function(item){
+							for (let index = 0; index < this.childNodes.length; index++) {
+								const ele = this.childNodes[index];
+								if(ele === item) ele.starThis(true);
+								else ele.starThis(false);
+							}
+						};
+
+					for (let index = 0; index < backImgdataList.length; index++) {
+						setBackgroundImghtmlFrame.find('.imgSrcShow .imgSrcShow-wrapper')
+						.prepend(
+							generateImgShowItem(backImgdataList[index],backImgdataList[index].uuid === starIndex)
+						);
+					}
+					//  清楚多余的空格
+					(function removeWhiteSpace(elem){
+						let el = elem || document,
+							cur = el.firstChild,
+							temp,
+							reg = /\S/;
+						while(null != cur){
+							temp = cur.nextSibling;
+							if( 3 === cur.nodeType && !reg.test(cur.nodeValue) ){
+								el.removeChild(cur);
+							}else if( 1 === cur.nodeType ){
+								removeWhiteSpace(cur);
+							}
+							cur = temp;
+						}
+					})(setBackgroundImghtmlFrame[0]);
+
+					PopupWindow.Show.HtmlFrame(setBackgroundImghtmlFrame[0],{
+						width:1000,
+						height:600,
+						maskColor:"rgba(0,0,0,.5)",
+					},()=>{
+						setTimeout(function(){
+							window.location = window.location;
+						},1000)
+					});
+				});
+				floatingWindow.find(".fa-image").click(function(){
+					let regex0 = /(?<=\(\")\S+(?=\"\))/g;
+					$('<a href="'+$('#head').css("background-image").match(regex0)+'" download="CurrentBackgroundImg.png"></a>')[0].click();
+				});
+				floatingWindow.find(".fa-share-alt").click(function(){
+					Notiflix.Report.Info( '分享', '追求极简的快乐', '确认' );
+					setTimeout(function(){
+						$('.notiflix-report-message').html('\
+							<div style="">\
+								<img src="https://greasyfork.org/assets/blacklogo16-bc64b9f7afdc9be4cbfa58bdd5fc2e5c098ad4bca3ad513a27b15602083fd5bc.png">greasyfork</img><br><br>\
+								<div style="height:16px;line-height: 16px;">分享发布地址到 &nbsp;&nbsp;&nbsp;<i title="仅复制链接" class="fa fa-copy fa-1x"></i>&nbsp;<i title="复制并分享到qq" class="fa fa-qq fa-1x"></i></div><hr>\
+							</div>\
+						');
+						$('.notiflix-report-message').find('.fa-copy').css(cssToObj("color: gray;transition: .5s;")).click(function(){
+							copyText(scriptInfo.greasyforkURL);
+						}).hover(function(){
+							$(this).css("color","rgb(128, 213, 63)");
+						},function(){
+							$(this).css("color","gray");
+						});
+						$('.notiflix-report-message').find('.fa-qq').css(cssToObj("color: gray;transition: .5s;")).click(function(){
+							shareToQQ();
+						}).hover(function(){
+							$(this).css("color","skyblue");
+						},function(){
+							$(this).css("color","gray");
+						});
+					},100);
+				});
+			})();
+		})();
+		
+		if(typeof(GM.getValue("isFirst")) === "undefined"){
+			var message = $("\
+				<div class='message'>\
+					<i class='fa fa-remove fa-1x'></i>\
+					<div class='message-content'>点击可切换背景图</div>\
+				</div>\
+			").css(cssToObj("\
+				position: fixed;\
+				top: 88%;left: 70px;\
+				padding: 10px;\
+				width: 150px;height: 24px;\
+				border-radius: 20px 20px 20px 0px;\
+				background-color: white;\
+				transition: 1s;\
+			"));
+			message.find('i').css(cssToObj("\
+				position: absolute;\
+				top: 0px;right: 0px;\
+				width: 24px;height: 24px;\
+				color: rgb(250,50,50);\
+				font-size: 16px;\
+				text-align: center;\
+				line-height: 24px;\
+			")).click(function(){
+				GM.setValue("isFirst",true);
+				message.css(cssToObj("opacity: 0;"));
+				setTimeout(function(){
+					message.remove();
+				},1000);
+			});
+			message.find('.message-content').css(cssToObj("\
+				position: absolute;\
+				font-size: 16PX;\
+			"));
+			document.body.appendChild(message[0]);
+		}
+		if(typeof(GM.getValue("backImgSelect")) === "number"){
+			setBackgroundImg(backImgNode,GM.getValue("backImgSelect"));
+		}
+		else{
+			console.log(GM.getValue("backImgSelect"));
+			setBackgroundImg(backImgNode,0);
+		}
+		// 	百度油猴菜单注册
+		(function(){
+			var showFloatWindow = GM.getValue("showFloatWindow");
+			if(typeof(showFloatWindow) == "undefined"){
+				GM.setValue("showFloatWindow",true);
+			}
+			function unregisterMenu(){
+				var commandId = GM.getValue("commandId");
+				if(commandId == "undefined"){
+					alert("出现了未知错误");
+					return;
+				}
+				GM.unregisterMenuCommand(commandId);
+			}
+			function setCommandEnd(commandName){
+				GM.setValue("commandId",GM.registerMenuCommand(commandName,function(){
+					unregisterMenu();
+					if(commandName==="关闭悬浮窗"){
+						setCommandEnd("开启悬浮窗");
+						$("#floatingWindow").css("display","none");
+					}
+					else{
+						setCommandEnd("关闭悬浮窗");
+						$("#floatingWindow").css("display","block");
+					}
+				}));
+			}
+			if(showFloatWindow){
+				setCommandEnd("关闭悬浮窗");
+			}else{
+				setCommandEnd("开启悬浮窗");
+			}
+		})();
+	}
+	function initThatWordView(){
+		const $ = $341;
+		//  初始化右下角一言
+		(function(){
+			var thatWord = $("\
+				<div class='thatWord'>\
+				<div class='thatWord-content'></div>\
+				<div class='thatWord-author'></div>\
+				</div>\
+			").css(cssToObj("\
+				position: fixed;\
+				padding: 10px;\
+				width: 300px;\
+				bottom: 0;right: 0;\
+				color: white;\
+				user-select: none;\
+				font-size: 18px;\
+			"));
+			thatWord
+				.hover(function(){
+				var content = this;
+				this.copyX = $("<i title='复制文本内容' class='fa fa-copy fa-1x'></i>")
+					.click(function(){
+					copyText(thatWord.find('.thatWord-content')[0].innerText);
+				});
+				thatWord.append(this.copyX);
+			},function(){
+				if(this.copyX){this.copyX.remove();}
+			});
+			thatWord.find('.thatWord-content').css(cssToObj("width: 100%;float: left;"))[0].innerText = "极致简约,极致设计";
+			thatWord.find('.thatWord-author').css(cssToObj("float: right;")).html("—— 一介");
+			thatWord.find('.fa-copy').css(cssToObj("position: absolute;top: 10px;right: 10px;"));
+			document.body.appendChild(thatWord[0]);
+		})();
+	}
 
 	function isopenRoute(){
 		if(devControler.is()){
@@ -290,7 +841,6 @@
 				return true;
 		}
 	}
-
 	if(routerControler.type === "Baidu" && isopenRoute()){
 		//  init百度的视图
 		(function(){
@@ -404,544 +954,45 @@
 				});
 			})();
 
-			//  初始化悬浮窗
-			(function(){
-				var floatingWindow = (function(){
-					var floatingWindow = $("\
-						<div id='floatingWindow' class='floatingWindow'>\
-							<i class='fa fa-refresh fa-3x'></i>\
-							<div class='selectNode-nav'></div>\
-						</div>\
-					").css(cssToObj("\
-						position: fixed;\
-						bottom: 20px;left: -25px;\
-						width: 50px;height: 50px;\
-						border-radius: 50%;\
-						background-image: linear-gradient( 135deg, #3C8CE7 30%, #00EAFF 100%);\
-						box-shadow: 0 0 30px white;\
-						transition: .5s;\
-					")).hover(function(){
-						this.isMouseout = false;
-						$(this).css(cssToObj("\
-							bottom: 20px;left: 20px;\
-							transform: rotateZ(180deg);\
-						"));
-					},function(){
-						var content = this;
-						content.isMouseout = true;
-						setTimeout(function(){
-							if(content.isMouseout) $(content).css(cssToObj("\
-								bottom: 20px;left: -25px;\
-								transform: rotateZ(0deg);\
-							"));
-						},1000);
-					});
-					floatingWindow.find('.fa-refresh').css(cssToObj("\
-						width: 100%;\
-						color: rgb(250,250,250);\
-						font-size: 25px;\
-						text-align: center;\
-						line-height: 50px;\
-					")).click(function(){
-						setBackgroundImg(-1);
-					});
-					floatingWindow.find('.selectNode-nav').css(cssToObj("\
-						position: absolute;\
-						padding-left: 6px;\
-						padding-right: 6px;\
-						padding-top: 6px;\
-						top: 70px;left: calc(50% - 18px);\
-						width: 24px;\
-					")).append($("\
-						<i title='有关本插件' class='fa fa-info fa-2x'></i>\
-						<i title='插件设置' class='fa fa-cog fa-2x'></i>\
-						<i title='添加新背景图' class='fa fa-plus fa-2x'></i>\
-						<i title='查看当前背景大图' class='fa fa-image fa-2x'></i>\
-						<i title='分享给好友' class='fa fa-share-alt fa-2x'></i>\
-					"));
-					floatingWindow.find('.selectNode-nav').find('i').css(cssToObj("\
-						margin-bottom: 16px;\
-						width: 24px;\
-						text-align: center;\
-						color: gray;\
-						transform: rotateZ(180deg);\
-						transition: .5s;\
-					")).hover(function(){
-						$(this).css(cssToObj("\
-							color: white;\
-						"));
-					},function(){
-						$(this).css("color","gray");
-					});
-					document.body.appendChild(floatingWindow[0]);
-					return floatingWindow;
-				})();
-				//  初始化悬浮窗点击事件
-				(function(){
-					Notiflix.Report.Init({ width:"420px",backgroundColor:"#ffffff",svgSize:"50px",titleFontSize:"20px",buttonFontSize:"16px", info: {svgColor:"#0fa1e5",buttonBackground:"#2aa5e8",}, });
-					floatingWindow.find(".fa-info").click(function(){
-						Notiflix.Report.Info( '关于本插件', '追求极简的快乐', '确认' );
-						setTimeout(function(){
-							$('.notiflix-report-message').html('\
-								<h3>追求极简的快乐</h3>\
-								<h4>插件名:'+scriptInfo.name+'&nbsp;&nbsp;'+scriptInfo.version+'</h4>\
-								<h4>作者:'+scriptInfo.author+'</h4>\
-								<h4>创建时间:'+scriptInfo.create+'</h4>\
-								<h4>greasyfork<a href="'+scriptInfo.greasyforkURL+'">下载地址</a></h4>\
-							');
-						},100);
-					});
-					floatingWindow.find(".fa-cog").click(function(){
-						Notiflix.Report.Warning( '插件设置-开发ing', '插件设置,努力开发ing', '确认' );
-					});
-					floatingWindow.find(".fa-plus").click(function(){
-						function generateImgShowItem(backImgdata,isStar) {
-							const userimgSrc = backImgdata.url;
-							const uuid = backImgdata.uuid;
-							const imgShowItem =
-								$('<div class="imgShowItem">\
-									<i class="fa fa-trash" title="删除图片"></i>\
-									<i class="fa fa-link" title="复制链接"></i>\
-									<i class="fa fa-star'+(() => {
-										if(!isStar) return '-o'
-										else return ''
-									})()+' imgShowItem-set" title="'+(() => {
-										if(!isStar) return '设置为背景'
-										else return ''
-									})()+'"></i>\
-								</div>').css(cssToObj("\
-									position: relative;float: left;\
-									width: 0px;height: 180px;\
-									margin: 10px;\
-									background-position: center;\
-									background-repeat: no-repeat;\
-									background-size: 0%;\
-									background-color: black;\
-									background-image: url('"+userimgSrc+"');\
-									box-shadow: 0 0 0px gray;\
-									border-radius: 16px;\
-									overflow: hidden;\
-									transition: .5s;\
-								")).hover(function(){
-									$(this).css(cssToObj("box-shadow: 0 0 20px gray;"));
-								},function(){
-									$(this).css(cssToObj("box-shadow: 0 0 0px gray;"));
-								})
-									.find('.fa-trash')
-									.css(cssToObj("\
-										position: absolute;\
-										bottom: 10px;right: 10px;\
-										color: rgb(250,250,250);\
-										transition: .5s;\
-									"))
-									.hover(function(){
-										$(this).css("color","rgb(250,100,100)");
-									},function(){
-										$(this).css("color","rgb(250,250,250)");
-									})
-									.unbind('click').bind('click',function(){
-										const content = this;
-										Notiflix.Confirm.Init({ titleColor:"#dc1616",titleFontSize:"20px",rtl:true,borderRadius:"8px", });
-										Notiflix.Confirm.Show( '确认', '你确认要删除该壁纸吗?', '确认', '我点错了', function(){
-											setTimeout(() => {
-												$(content).parent().css("width","0");
-												setTimeout(() => {
-	// Todo 删除改图片数据
-													$(content).parent().remove();
-													for (let index = 0; index < backImgdataList.length; index++) {
-														if(backImgdataList[index].uuid === uuid){
-															backImgdataList.splice(index, 1);
-															break;
-														}
-													}
-													GM.setValue("backImgdataList",backImgdataList);
-												}, 800);
-											}, 100);
-										}, function(){
-										} );
-									})
-								.parent()
-									.find('.fa-link')
-									.css(cssToObj("\
-										position: absolute;\
-										bottom: 10px;right: 30px;\
-										color: rgb(250,250,250);\
-										transition: .5s;\
-									"))
-									.hover(function(){
-										$(this).css("color","rgb(100,100,250)");
-									},function(){
-										$(this).css("color","rgb(250,250,250)");
-									})
-									.unbind('click').bind('click',function(){
-										copyText(userimgSrc);
-									})
-								.parent()
-									.find('.imgShowItem-set')
-									.css(cssToObj("\
-										position: absolute;\
-										bottom: 10px;right: 50px;\
-										color: "+(() => {
-											if(!isStar) return 'rgb(250,250,250)'
-											else return 'rgb(250,250,100)'
-										})()+";\
-										transition: .5s;\
-									"))
-									.hover(function(){
-										$(this)
-											.removeClass("fa-star-o")
-											.addClass("fa-star")
-											.css("color","rgb(250,250,100)");
-									},function(){
-										if(!$(this).parent()[0].isStar) $(this)
-											.removeClass("fa-star")
-											.addClass("fa-star-o")
-											.css("color","rgb(250,250,250)");
-										else $(this)
-											.removeClass("fa-star-o")
-											.addClass("fa-star")
-											.css("color","rgb(250,250,100)");
-									})
-									.unbind('click').bind('click',function(){
-										if(this.isStar) return;
-										const $parent = $(this).parent();
-										const $grandparent = $parent.parent();
-										$grandparent[0].setStar.call($grandparent[0],$parent[0]);
-										GM.setValue("starIndex",uuid);
-										setBackgroundImg();
-									})
-								.parent();
-							imgShowItem[0].uuid = uuid;
-							imgShowItem[0].isStar = isStar;
-							imgShowItem[0].starThis = function (isStar) {
-								this.isStar = isStar;
-								if(!isStar){
-									$(this).find('.imgShowItem-set')
-									.removeClass("fa-star")
-									.addClass("fa-star-o")
-									.css("color","rgb(250,250,250)");
-								}
-								else{
-									$(this).find('.imgShowItem-set')
-									.removeClass("fa-star-o")
-									.addClass("fa-star")
-									.css("color","rgb(250,250,100)");
-								}
-							};
-							setTimeout(() => {
-								imgShowItem
-								.css("width","280px")
-								.css("background-size","100%");
-							}, 100);
-							return imgShowItem;
-						}
-
-						const setBackgroundImghtmlFrame = (function () {
-							const htmlFrame = $('\
-								<div>\
-									<h1 style="font-size: 2em;text-align: center;margin-top: 10px;margin-bottom: 10px;">自定义图片背景</h1>\
-									<h3 style="font-size: 1.17em;text-align: center;margin-top: 10px;margin-bottom: 20px;">你可以通过下面的图床工具生成你的图片地址</h3>\
-									<h3 style="font-size: 1.17em;text-align: center;margin-top: 0;margin-bottom: 20px;height:50px;line-height:50px;">\
-										<a class="imgBedLink" href="http://ss.netnr.com/bed" target="_blank">net达人</a>\
-										<a class="imgBedLink" href="https://oss.bilnn.com/" target="_blank">图速云</a>\
-									</h3>\
-									<div class="imgSrcInputWrapper"><input type="text" name="imgSrc01" placeholder="请输入图片的url地址"><i class="fa fa-check"></i><i class="fa fa-close"></i></div>\
-									<div class="imgSrcShow">\
-										<div class="imgSrcShow-wrapper">\
-										</div>\
-									</div>\
-								</h1>\
-							').css({
-								"position":"absolute",
-								"width":"100%",
-								"height":"100%",
-							});
-							htmlFrame.find('.imgBedLink').css(cssToObj("\
-								padding: 5px;\
-								margin-left: 10px;margin-right: 10px;\
-								border: 2px solid gray;\
-								border-radius: 14px;\
-								box-shadow: 0 0 0px gray;\
-								background-color: rgb(240,240,240);\
-								color: skyblue;\
-								text-decoration: none;\
-								font-size: 18px;\
-								transition: .5s;\
-							")).hover(function () {
-								$(this).css(cssToObj("box-shadow: 0 0 5px gray;"));
-							},function () {
-								$(this).css(cssToObj("box-shadow: 0 0 0px gray;"));
-							});
-							htmlFrame.find('.imgSrcInputWrapper').css(cssToObj("\
-								position: relative;float: left;\
-								left: 10%;\
-								padding-left: 10px;\
-								padding-right: 10px;\
-								width: calc(80% - 20px);height: 40px;\
-								font-size: 20px;line-height: 40px;\
-								border-radius: 10px;\
-								background-color: white;\
-								box-shadow: 0 0 8px gray;\
-								overflow: hidden;\
-								transition: .5s;\
-							")).hover(function(){
-								$(this).css(cssToObj("box-shadow: 0 0 18px gray;"));
-							},function(){
-								$(this).css(cssToObj("box-shadow: 0 0 8px gray;"));
-							}).find('i').css(cssToObj("\
-								position: relative;float: left;\
-								width: 32px;height: 40px;\
-								text-align: center;\
-								line-height: 40px;\
-							")).parent().find('input').css(cssToObj("position: relative;float: left;"));
-							htmlFrame.find('.imgSrcInputWrapper .fa-check').css("color","rgb(100,250,100)")
-							.unbind('click').click(function(){
-								if(htmlFrame.find('input').val()===""){
-									Notiflix.Report.Failure( '错误', '链接不能为空', '确认');
-									return;
-								}
-								let data = {
-										"uuid":uuid(),
-										"url":htmlFrame.find('input').val(),
-								};
-								htmlFrame.find('.imgSrcShow .imgSrcShow-wrapper')
-								.prepend(generateImgShowItem(data,false));
-	// Todo 新添加一张背景图
-								backImgdataList.unshift(data);
-								GM.setValue("backImgdataList",backImgdataList);
-								htmlFrame.find('input').val("");
-							});
-							htmlFrame.find('.imgSrcInputWrapper .fa-close').css("color","rgb(250,100,100)")
-							.unbind('click').click(function(){
-								htmlFrame.find('input').val("");
-							});
-
-							htmlFrame.find('.imgSrcInputWrapper input').css(cssToObj("\
-								width: calc(100% - 64px);height: 100%;\
-								border: none;\
-								outline: none;\
-								font-size: 20px;line-height: 40px;\
-							"));
-							htmlFrame.find('.imgSrcShow').css(cssToObj("\
-								position: relative;float: left;\
-								width: 100%;height: calc(100% - 230px);\
-								overflow-x: hidden;\
-							"));
-							htmlFrame.find('.imgSrcShow .imgSrcShow-wrapper').css(cssToObj("\
-								position: absolute;\
-								left: calc(50% - 450px);\
-								width: 900px;\
-							"));
-							return htmlFrame;
-						})();
-						const backImgdataList = GM.getValue("backImgdataList");
-						if(typeof(backImgdataList)==="undefined"){
-							GM.setValue("backImgdataList",[]);
-							backImgdataList = [];
-						}
-						const starIndex = GM.getValue("starIndex");
-						if(typeof(starIndex)==="undefined"){
-							GM.setValue("starIndex",-1);
-							starIndex = -1;
-						}
-						setBackgroundImghtmlFrame.find('.imgSrcShow .imgSrcShow-wrapper')
-							[0].setStar = function(item){
-								for (let index = 0; index < this.childNodes.length; index++) {
-									const ele = this.childNodes[index];
-									if(ele === item) ele.starThis(true);
-									else ele.starThis(false);
-								}
-							};
-
-						for (let index = 0; index < backImgdataList.length; index++) {
-							setBackgroundImghtmlFrame.find('.imgSrcShow .imgSrcShow-wrapper')
-							.prepend(
-								generateImgShowItem(backImgdataList[index],backImgdataList[index].uuid === starIndex)
-							);
-						}
-						//  清楚多余的空格
-						(function removeWhiteSpace(elem){
-							let el = elem || document,
-								cur = el.firstChild,
-								temp,
-								reg = /\S/;
-							while(null != cur){
-								temp = cur.nextSibling;
-								if( 3 === cur.nodeType && !reg.test(cur.nodeValue) ){
-									el.removeChild(cur);
-								}else if( 1 === cur.nodeType ){
-									removeWhiteSpace(cur);
-								}
-								cur = temp;
-							}
-						})(setBackgroundImghtmlFrame[0]);
-
-						PopupWindow.Show.HtmlFrame(setBackgroundImghtmlFrame[0],{
-							width:1000,
-							height:600,
-							maskColor:"rgba(0,0,0,.5)",
-						},()=>{
-							setTimeout(function(){
-								window.location = window.location;
-							},1000)
-						});
-					});
-					floatingWindow.find(".fa-image").click(function(){
-						let regex0 = /(?<=\(\")\S+(?=\"\))/g;
-						$('<a href="'+$('#head').css("background-image").match(regex0)+'" download="CurrentBackgroundImg.png"></a>')[0].click();
-					});
-					floatingWindow.find(".fa-share-alt").click(function(){
-						Notiflix.Report.Info( '分享', '追求极简的快乐', '确认' );
-						setTimeout(function(){
-							$('.notiflix-report-message').html('\
-								<div style="">\
-									<img src="https://greasyfork.org/assets/blacklogo16-bc64b9f7afdc9be4cbfa58bdd5fc2e5c098ad4bca3ad513a27b15602083fd5bc.png">greasyfork</img><br><br>\
-									<div style="height:16px;line-height: 16px;">分享发布地址到 &nbsp;&nbsp;&nbsp;<i title="仅复制链接" class="fa fa-copy fa-1x"></i>&nbsp;<i title="复制并分享到qq" class="fa fa-qq fa-1x"></i></div><hr>\
-								</div>\
-							');
-							$('.notiflix-report-message').find('.fa-copy').css(cssToObj("color: gray;transition: .5s;")).click(function(){
-								copyText(scriptInfo.greasyforkURL);
-							}).hover(function(){
-								$(this).css("color","rgb(128, 213, 63)");
-							},function(){
-								$(this).css("color","gray");
-							});
-							$('.notiflix-report-message').find('.fa-qq').css(cssToObj("color: gray;transition: .5s;")).click(function(){
-								shareToQQ();
-							}).hover(function(){
-								$(this).css("color","skyblue");
-							},function(){
-								$(this).css("color","gray");
-							});
-						},100);
-					});
-				})();
-			})();
-			//  初始化右下角一言
-			(function(){
-				var thatWord = $("\
-					<div class='thatWord'>\
-					<div class='thatWord-content'></div>\
-					<div class='thatWord-author'></div>\
-					</div>\
-				").css(cssToObj("\
-					position: fixed;\
-					padding: 10px;\
-					width: 300px;\
-					bottom: 0;right: 0;\
-					color: white;\
-					user-select: none;\
-					font-size: 18px;\
-				"));
-				thatWord
-					.hover(function(){
-					var content = this;
-					this.copyX = $("<i title='复制文本内容' class='fa fa-copy fa-1x'></i>")
-						.click(function(){
-						copyText(thatWord.find('.thatWord-content')[0].innerText);
-					});
-					thatWord.append(this.copyX);
-				},function(){
-					if(this.copyX){this.copyX.remove();}
-				});
-				thatWord.find('.thatWord-content').css(cssToObj("width: 100%;float: left;"))[0].innerText = "极致简约,极致设计";
-				thatWord.find('.thatWord-author').css(cssToObj("float: right;")).html("—— 一介");
-				thatWord.find('.fa-copy').css(cssToObj("position: absolute;top: 10px;right: 10px;"));
-				document.body.appendChild(thatWord[0]);
-			})();
-		})();
-		if(typeof(GM.getValue("isFirst")) === "undefined"){
-			var message = $("\
-				<div class='message'>\
-					<i class='fa fa-remove fa-1x'></i>\
-					<div class='message-content'>点击可切换背景图</div>\
-				</div>\
-			").css(cssToObj("\
-				position: fixed;\
-				top: 88%;left: 70px;\
-				padding: 10px;\
-				width: 150px;height: 24px;\
-				border-radius: 20px 20px 20px 0px;\
-				background-color: white;\
-				transition: 1s;\
-			"));
-			message.find('i').css(cssToObj("\
-				position: absolute;\
-				top: 0px;right: 0px;\
-				width: 24px;height: 24px;\
-				color: rgb(250,50,50);\
-				font-size: 16px;\
-				text-align: center;\
-				line-height: 24px;\
-			")).click(function(){
-				GM.setValue("isFirst",true);
-				message.css(cssToObj("opacity: 0;"));
-				setTimeout(function(){
-					message.remove();
-				},1000);
-			});
-			message.find('.message-content').css(cssToObj("\
-				position: absolute;\
-				font-size: 16PX;\
-			"));
-			document.body.appendChild(message[0]);
-		}
-		if(typeof(GM.getValue("backImgSelect")) === "number"){
-			setBackgroundImg(GM.getValue("backImgSelect"));
-		}
-		else{
-			console.log(GM.getValue("backImgSelect"));
-			setBackgroundImg(0);
-		}
-		// 	百度油猴菜单注册
-		(function(){
-			var showFloatWindow = GM.getValue("showFloatWindow");
-			if(typeof(showFloatWindow) == "undefined"){
-				GM.setValue("showFloatWindow",true);
-			}
-			function unregisterMenu(){
-				var commandId = GM.getValue("commandId");
-				if(commandId == "undefined"){
-					alert("出现了未知错误");
-					return;
-				}
-				GM.unregisterMenuCommand(commandId);
-			}
-			function setCommandEnd(commandName){
-				GM.setValue("commandId",GM.registerMenuCommand(commandName,function(){
-					unregisterMenu();
-					if(commandName==="关闭悬浮窗"){
-						setCommandEnd("开启悬浮窗");
-						$("#floatingWindow").css("display","none");
-					}
-					else{
-						setCommandEnd("关闭悬浮窗");
-						$("#floatingWindow").css("display","block");
-					}
-				}));
-			}
-			if(showFloatWindow){
-				setCommandEnd("关闭悬浮窗");
-			}else{
-				setCommandEnd("开启悬浮窗");
-			}
+			initFloatWindowView($('#head'));
+			initThatWordView();
 		})();
 	}
 	else if(routerControler.type === "Google" && isopenRoute()){
+		const $ = $341;
 		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(250,50,50);", "该界面尚处于开发状态");
-		// 初始化导航按钮
-		(function(){
-			let nav = document.querySelector('#gb#gb a.gb_D');
-			nav.className = "fa fa-navicon  fa-2x";
-			nav.style.color = "white";
+		// 初始化视图
+		(function () {
+			// 初始化导航按钮
+			(function(){
+				$('#gbwa > div > a')
+				.removeClass("gb_D gb_tc")
+				.addClass("fa fa-navicon  fa-2x")
+				.css("color","white");
+			})();
+			// 删除不必要部分
+			(function(){
+				$('#searchform.big .FPdoLc').css("display","none");
+				$('#SIvCob').css("display","none");
+				$('#footer').css("display","none");
+			})();
+			// 微调样式
+			(function(){
+				$('#main').css(cssToObj("\
+					position: fixed;\
+					top: calc(50% - 300px);\
+					width: 100%;\
+				"));
+				$('#searchform').css(cssToObj("\
+					position: fixed ;\
+					top: 50% ;\
+					width: 100% ;\
+				"));
+			})();
+			
+			initFloatWindowView($('#viewport'));
+			initThatWordView();
 		})();
-		// 删除不必要部分
-		(function(){
-			document.querySelector('#searchform.big .FPdoLc').style.display = "none";
-			document.querySelector('#SIvCob').style.display = "none";
-			document.querySelector('#footer').style.display = "none";
-		})();
-		return;
 	}
 	else if(routerControler.type === "NetnrImageBed" && isopenRoute()){
 		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(250,50,50);", "该界面尚处于开发状态");
