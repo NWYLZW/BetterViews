@@ -23,6 +23,7 @@
 // ==/UserScript==
 (function() {
     'use strict';
+	Notiflix.Loading.Dots('加载中...');
     var scriptInfo = {
         "name":GM_info.script.name,
         "description":GM_info.script.description,
@@ -855,6 +856,7 @@
 				$('div#s_top_wrap').css(cssToObj("display: none;"));
 				$('div#s_upfunc_menus').css(cssToObj("display: none;"));
 				$('div#u_sp').css(cssToObj("display: none;"));
+				$('#s_wrap').css(cssToObj("display: none;"));
 			})();
 			//  设置自定义的logo
 			(function(){
@@ -998,4 +1000,5 @@
 		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(250,50,50);", "该界面尚处于开发状态");
 		return;
 	}
+	Notiflix.Loading.Remove(200);
 })();
