@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.2.1
+// @version                1.0.2.2
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
 // @create                 2020-04-05
-// @match                  *://www.baidu.com/
-// @match                  *://www.google.com/
+// @match                  *://www.baidu.com/*
+// @match                  *://www.google.com/*
 // @match                  *://ss.netnr.com/bed
 // @require                https://cdn.jsdelivr.net/npm/notiflix@2.1.2/dist/AIO/notiflix-aio-2.1.2.min.js
 // @require                https://greasyfork.org/scripts/399868-jquery-loadednode/code/jQuery-loadedNode.js?version=790609
@@ -40,7 +40,7 @@
     GM.deleteValue = GM_deleteValue;
     GM.registerMenuCommand = GM_registerMenuCommand;
 	GM.unregisterMenuCommand = GM_unregisterMenuCommand;
-	
+
 	// 初始化devControler
 	(function(){
 		const devControler = {};
@@ -62,11 +62,11 @@
 		"routerList":{
 			"Baidu":{
 				"isDev":false,
-				"regex":/https?:\/\/www.baidu.com\//,
+				"regex":/^((http(s)?)(:\/\/www.baidu.com(\/)*$))|(((http(s)?)(:\/\/www.baidu.com(\/)*)[(\?\#)]))/,
 			},
 			"Google":{
 				"isDev":true,
-				"regex":/https?:\/\/www.google.com\//,
+				"regex":/^((http(s)?)(:\/\/www.google.com(\/)*$))|(((http(s)?)(:\/\/www.google.com(\/)*)[(\?\#)]))/,
 			},
 			"NetnrImageBed":{
 				"isDev":true,
@@ -713,7 +713,7 @@
 				});
 			})();
 		})();
-		
+
 		if(typeof(GM.getValue("isFirst")) === "undefined"){
 			var message = $("\
 				<div class='message'>\
@@ -989,7 +989,7 @@
 					width: 100% ;\
 				"));
 			})();
-			
+
 			initFloatWindowView($('#viewport'));
 			initThatWordView();
 		})();
