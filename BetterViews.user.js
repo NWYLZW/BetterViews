@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.2.3
+// @version                1.0.2.4
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -23,7 +23,6 @@
 // ==/UserScript==
 (function() {
     'use strict';
-	Notiflix.Loading.Dots('加载中...');
     var scriptInfo = {
         "name":GM_info.script.name,
         "description":GM_info.script.description,
@@ -75,9 +74,14 @@
 			},
 		},
 	};
+	const isLoad = false;
 	for (let key in routerControler.routerList) {
 		let item = routerControler.routerList[key];
-		if(item.regex.test(location.href)) routerControler.type = key;
+		if(item.regex.test(location.href)) {
+			Notiflix.Loading.Dots('加载中...');
+			isLoad = true;
+			routerControler.type = key;
+		};
 	}
 
     if(devControler.is()){
@@ -1000,5 +1004,5 @@
 		console.log("%c%s", "padding: 10px; border-radius: 10px; color: #fff; background-color: rgb(250,50,50);", "该界面尚处于开发状态");
 		return;
 	}
-	Notiflix.Loading.Remove(200);
+	if(isLoad) Notiflix.Loading.Remove(200);
 })();
