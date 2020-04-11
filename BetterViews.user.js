@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.2.4
+// @version                1.0.2.5
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -74,7 +74,7 @@
 			},
 		},
 	};
-	const isLoad = false;
+	let isLoad = false;
 	for (let key in routerControler.routerList) {
 		let item = routerControler.routerList[key];
 		if(item.regex.test(location.href)) {
