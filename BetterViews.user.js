@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.2.6
+// @version                1.0.2.7
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -12,7 +12,7 @@
 // @require                https://cdn.jsdelivr.net/npm/notiflix@2.1.2/dist/AIO/notiflix-aio-2.1.2.min.js
 // @require                https://greasyfork.org/scripts/399868-jquery-loadednode/code/jQuery-loadedNode.js?version=790609
 // @require                https://greasyfork.org/scripts/399879-%E5%BC%B9%E7%AA%97/code/%E5%BC%B9%E7%AA%97.js?version=790054
-// @require                https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
+// @require                http://code.jquery.com/jquery-3.4.1.min.js
 // @grant                  GM_info
 // @grant                  GM_setValue
 // @grant                  GM_getValue
@@ -267,7 +267,7 @@
 		if(sel===-1){
 			GM.setValue("starIndex",-1);
 		}
-		const starIndex = GM.getValue("starIndex");
+		let starIndex = GM.getValue("starIndex");
 		function loadImg(src){
 			let img=new Image();
 			img.src=imgSrcList[sel];
@@ -635,12 +635,12 @@
 						"));
 						return htmlFrame;
 					})();
-					const backImgdataList = GM.getValue("backImgdataList");
+					let backImgdataList = GM.getValue("backImgdataList");
 					if(typeof(backImgdataList)==="undefined"){
 						GM.setValue("backImgdataList",[]);
 						backImgdataList = [];
 					}
-					const starIndex = GM.getValue("starIndex");
+					let starIndex = GM.getValue("starIndex");
 					if(typeof(starIndex)==="undefined"){
 						GM.setValue("starIndex",-1);
 						starIndex = -1;
