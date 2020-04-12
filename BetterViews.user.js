@@ -62,11 +62,11 @@
 		"routerList":{
 			"Baidu":{
 				"isDev":false,
-				"regex":/^((http(s)?)(:\/\/www.baidu.com(\/)*$))|(((http(s)?)(:\/\/www.baidu.com(\/)*)[(\?\#)]))/,
+				"regex":/^https?:\/\/www\.baidu\.com\/(?!s)\??/,
 			},
 			"Google":{
 				"isDev":true,
-				"regex":/^((http(s)?)(:\/\/www.google.com(\/)*$))|(((http(s)?)(:\/\/www.google.com(\/)*)[(\?\#)]))/,
+				"regex":/^https?:\/\/www\.google\.com\/(?!s)\??/,
 			},
 			"NetnrImageBed":{
 				"isDev":true,
