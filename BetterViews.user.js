@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.2.7
+// @version                1.0.2.8
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -270,7 +270,7 @@
 		let starIndex = GM.getValue("starIndex");
 		function loadImg(src){
 			let img=new Image();
-			img.src=imgSrcList[sel];
+			img.src=src;
 			img.onload=function(){
 				$jqBack.css({
 					"background-position": "center",
