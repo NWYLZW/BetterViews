@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.2.8
+// @version                1.0.2.9
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -11,7 +11,7 @@
 // @match                  *://ss.netnr.com/bed
 // @require                https://cdn.jsdelivr.net/npm/notiflix@2.1.2/dist/AIO/notiflix-aio-2.1.2.min.js
 // @require                https://greasyfork.org/scripts/399868-jquery-loadednode/code/jQuery-loadedNode.js?version=790609
-// @require                https://greasyfork.org/scripts/399879-%E5%BC%B9%E7%AA%97/code/%E5%BC%B9%E7%AA%97.js?version=790054
+// @require                https://greasyfork.org/scripts/399879-%E5%BC%B9%E7%AA%97/code/%E5%BC%B9%E7%AA%97.js?version=792823
 // @require                http://code.jquery.com/jquery-3.4.1.min.js
 // @grant                  GM_info
 // @grant                  GM_setValue
