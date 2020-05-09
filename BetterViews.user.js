@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.2.9
+// @version                1.0.2.10
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
