@@ -861,6 +861,8 @@
 				$('div#s_upfunc_menus').css(cssToObj("display: none;"));
 				$('div#u_sp').css(cssToObj("display: none;"));
 				$('#s_wrap').css(cssToObj("display: none;"));
+				$('#s-hotsearch-wrapper').css(cssToObj("display: none;"));
+				$('#s-top-left').css(cssToObj("display: none;"));
 			})();
 			//  设置自定义的logo
 			(function(){
