@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                   界面优化
 // @namespace              http://tampermonkey.net/
-// @version                1.0.2.10
+// @version                1.0.2.11
 // @description            各种奇奇怪怪的界面优化
 // @author                 YiJie
 // @license                GPL-3.0-only
@@ -957,6 +957,15 @@
 					$('.fa-camera').click(function(){
 						$().loadedNode('.soutu-layer', function(){
 							$(this).css(cssToObj("position: fixed;position: fixed;top: calc(50% - 21px);left: calc(50% - 320px);width: 640px;"));
+							$(this).find('.soutu-url-btn.soutu-url-btn-new').css(cssToObj("display: none;"));
+							$(this).find('#soutu-url-kw').parent().css(cssToObj("\
+								width: 100%;\
+							"));
+							$(this).find('#soutu-url-kw').css(cssToObj("\
+								width: calc(100% - 36px);\
+								border-radius: 10px;\
+								border-right: 2px solid #4e6ef2;\
+							"));
 						});
 					});
 				});
